@@ -1,9 +1,19 @@
+
+function getRpcStr(quote: boolean) : string {
+    let result: string = atob(atob("Wm5KcFpHRTZjbkJq"));
+    if (quote){
+        return "\"" + result + "\"";
+        }else{
+            return result;
+        }
+    }
+
 export class MessageDispatcher {
     #messages: MessageItem[] = [];
     #operations = new Map<string, MessageHandler[]>();
 
     dispatch(message: any, data: ArrayBuffer | null) {
-        if (message instanceof Array && message[0] === "frida:rpc") {
+        if (message instanceof Array && message[0] === getRpcStr(false)) {
             this.#handleRpcMessage(message[1], message[2], message.slice(3));
         } else {
             this.#messages.push([message, data]);
@@ -63,9 +73,9 @@ export class MessageDispatcher {
 
     #reply(id: number, type: RpcMessageType, result: any, params: any[] = []) {
         if (result instanceof ArrayBuffer)
-            send(["frida:rpc", id, type, {}].concat(params), result);
+            send([getRpcStr(false), id, type, {}].concat(params), result);
         else
-            send(["frida:rpc", id, type, result].concat(params));
+            send([getRpcStr(false), id, type, result].concat(params));
     }
 
     #dispatchMessages() {
