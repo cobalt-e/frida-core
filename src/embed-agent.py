@@ -23,6 +23,7 @@ def main(argv):
         print("At least one agent must be provided", file=sys.stderr)
         sys.exit(1)
 
+    custom_script = output_dir.parent.parent.parent / "frida-core" / "src" / "anti-anti-frida.py"
     priv_dir.mkdir(exist_ok=True)
 
     embedded_assets = []
@@ -48,7 +49,9 @@ def main(argv):
             else:
                 for f in [embedded_agent, embedded_dbghelp, embedded_symsrv]:
                     f.write_bytes(b"")
-
+            patch_agent = f"{custom_script} {embedded_agent}"
+            if custom_script.exists():
+                exec(patch_agent)
             embedded_assets += [embedded_agent, embedded_dbghelp, embedded_symsrv]
     elif host_os in {"macos", "ios", "watchos", "tvos"}:
         embedded_agent = priv_dir / "frida-agent.dylib"
@@ -59,6 +62,9 @@ def main(argv):
             shutil.copy(agent_modern, embedded_agent)
         else:
             shutil.copy(agent_legacy, embedded_agent)
+        patch_agent = f"{custom_script} {embedded_agent}"
+        if custom_script.exists():
+            exec(patch_agent)
         embedded_assets += [embedded_agent]
     elif host_os in {"linux", "android"}:
         for agent, flavor in [(agent_modern, "64"),
@@ -70,11 +76,17 @@ def main(argv):
                 shutil.copy(agent, embedded_agent)
             else:
                 embedded_agent.write_bytes(b"")
+            patch_agent = f"{custom_script} {embedded_agent}"
+            if custom_script.exists():
+                exec(patch_agent)
             embedded_assets += [embedded_agent]
     elif host_os in {"freebsd", "qnx"}:
         embedded_agent = priv_dir / "frida-agent.so"
         agent = agent_modern if agent_modern is not None else agent_legacy
         shutil.copy(agent, embedded_agent)
+        patch_agent = f"{custom_script} {embedded_agent}"
+        if custom_script.exists():
+            exec(patch_agent)
         embedded_assets += [embedded_agent]
     else:
         print("Unsupported OS", file=sys.stderr)
