@@ -1762,7 +1762,7 @@ namespace Frida.Gadget {
 			private HostApplicationInfo this_app;
 			private HostProcessInfo this_process;
 			private TimeoutSource? ping_timer;
-			private bool resume_on_attach = false;
+			private bool resume_on_attach = true;
 
 			public ControlChannel (ControlServer parent, DBusConnection connection) {
 				Object (parent: parent, connection: connection);
